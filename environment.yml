@@ -1,0 +1,15 @@
+name: measure_temp
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - ipython>=8
+  - jupyterlab>=3
+  - black
+  - isort
+  - mypy
+  - versioneer
+  - pip>=22
+  - pre-commit
+  - pip:
+    - pysensors  # not the sklearn pkg
