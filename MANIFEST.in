@@ -1,0 +1,2 @@
+include versioneer.py
+include measure_temp/_version.py
