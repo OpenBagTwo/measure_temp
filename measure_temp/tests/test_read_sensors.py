@@ -23,7 +23,7 @@ class TestEnumerateAllSensors:
         # also checking that the Sensor class is hashable and sortable
         assert sorted(set(all_sensors)) == sorted(all_sensors)
 
-    @pytest.mark.parametrize("sensor", all_readable_sensors)
+    @pytest.mark.parametrize("sensor", all_readable_sensors, ids=str)
     def test_all_readable_sensors_are_readable(self, sensor):
         with read_sensors.sensors_session():
             for chip in sensors.iter_detected_chips():
