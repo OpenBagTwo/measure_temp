@@ -104,3 +104,49 @@ def enumerate_all_sensors(
                     continue
             sensors_list.append(Sensor(chip_label, chip.addr, feature.name, num=num))
     return sensors_list
+
+
+def read_sensor(sensor: Union[str, Sensor]):
+    """Read a sensor value
+
+    Parameters
+    ----------
+    sensor : Sensor tuple or a string of the form "chip_prefix.feature_name"
+        The sensor to read. If your system has multiple chips with the same prefix, it is highly recommended that you
+        use a Sensor tuple that specifies the address.
+
+    Returns
+    -------
+    float
+        The sensor value
+
+    Raises
+    ------
+    SensorError
+        If the sensor cannot be read
+    ValueError
+        If the chip cannot be found or the feature cannot be found on that sensor
+
+    Notes
+    -----
+    No units are provided--hopefully you can figure out on your own whether you're seeing degrees C, RPM or volts.
+    """
+    if isinstance(sensor, str):
+        sensor_lookup = {str(value): value for value in enumerate_all_sensors()}
+        try:
+            sensor = sensor_lookup[sensor]
+        except KeyError:
+            raise ValueError(f"Could not find a sensor matching descriptor {sensor}")
+
+    with sensors_session():
+        for chip in sensors.iter_detected_chips():
+            if chip.addr != sensor.addr:
+                continue
+            for feature in chip:
+                if feature.name == sensor.feature:
+                    return feature.get_value()
+            else:
+                raise ValueError(
+                    f"Feature {sensor.feature} not found on chip {str(sensor).split('.')[0]}"
+                )
+    raise ValueError(f"Chip {sensor.chip} not found at address {sensor.addr}")
