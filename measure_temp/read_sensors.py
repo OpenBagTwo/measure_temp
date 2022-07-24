@@ -1,6 +1,6 @@
 """Get readings from sensors"""
 from contextlib import contextmanager
-from typing import Union
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 import sensors
 
@@ -43,3 +43,52 @@ def report_all_readings():
             except sensors.SensorsError:
                 value = None
             report(f"- {chip.prefix.decode()}:{feature.name} : {value}")
+
+
+class Sensor(NamedTuple):
+    """Hashable specification for a specific sensor
+
+    Attributes
+    ----------
+    chip : str
+        The chip's prefix
+    feature : str
+        The name of the specific reading
+    """
+
+    chip: str
+    feature: str
+
+
+@sensors_session()
+def enumerate_all_sensors(
+    readable_only: Optional[bool] = False,
+) -> List[Tuple[Sensor, sensors.Feature]]:
+    """Generate a mapping of all available sensors
+
+    Parameters
+    ----------
+    readable_only : bool, optional
+        If True, only return the sensors that are actually readable (read: don't throw a SensorsError).
+        Default is False.
+
+    Returns
+    -------
+    list of tuples, where the first value is a Sensor (chip, feature) tuples and the second the corresponding Feature
+    instances
+
+    Notes
+    -----
+    The intent is that this is going to get thrown into a dict lookup, but having the low-level method at the list level
+    is going to help with testing and debugging.
+    """
+    sensors_list = []
+    for chip in sensors.iter_detected_chips():
+        for feature in chip:
+            if readable_only:
+                try:
+                    _ = feature.get_value()
+                except sensors.SensorsError:
+                    continue
+            sensors_list.append((Sensor(chip.prefix.decode(), feature.name), feature))
+    return sensors_list
