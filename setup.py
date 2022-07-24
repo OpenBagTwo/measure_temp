@@ -1,5 +1,6 @@
-import versioneer
 from setuptools import setup
+
+import versioneer
 
 setup(
     name="measure_temp",
