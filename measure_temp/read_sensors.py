@@ -59,12 +59,15 @@ class Sensor(NamedTuple):
     chip: str
     feature: str
 
+    def __str__(self):
+        return ".".join(self)
+
 
 @sensors_session()
 def enumerate_all_sensors(
     readable_only: Optional[bool] = False,
-) -> List[Tuple[Sensor, sensors.Feature]]:
-    """Generate a mapping of all available sensors
+) -> List[Sensor]:
+    """Generate a list of all available sensors
 
     Parameters
     ----------
@@ -76,11 +79,6 @@ def enumerate_all_sensors(
     -------
     list of tuples, where the first value is a Sensor (chip, feature) tuples and the second the corresponding Feature
     instances
-
-    Notes
-    -----
-    The intent is that this is going to get thrown into a dict lookup, but having the low-level method at the list level
-    is going to help with testing and debugging.
     """
     sensors_list = []
     for chip in sensors.iter_detected_chips():
@@ -90,5 +88,5 @@ def enumerate_all_sensors(
                     _ = feature.get_value()
                 except sensors.SensorsError:
                     continue
-            sensors_list.append((Sensor(chip.prefix.decode(), feature.name), feature))
+            sensors_list.append(Sensor(chip.prefix.decode(), feature.name))
     return sensors_list

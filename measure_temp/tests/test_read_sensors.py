@@ -1,8 +1,6 @@
 """Integration tests for ensuring the read_sensors module is playing nicely on your system"""
-from typing import List
-
 import pytest
-from sensors import SensorsError
+import sensors
 
 from measure_temp import read_sensors
 
@@ -16,15 +14,6 @@ class TestEnumerateAllSensors:
 
     all_readable_sensors = read_sensors.enumerate_all_sensors(readable_only=True)
 
-    @staticmethod
-    def pytest_generate_tests(metafunc):
-        if "sensor" in metafunc.fixturenames:
-            id_list, arg_values = zip(*metafunc.cls.all_readable_sensors)
-            id_list = [".".join(sensor_name) for sensor_name in id_list]
-            arg_names = [["sensor"]] * len(id_list)
-            arg_values = [[sensor] for sensor in arg_values]
-            metafunc.parametrize(arg_names, arg_values, ids=id_list, scope="class")
-
     def test_system_has_at_least_one_readable_sensor(self):
         assert len(self.all_readable_sensors) > 0
 
@@ -34,6 +23,18 @@ class TestEnumerateAllSensors:
         # also checking that the Sensor class is hashable and sortable
         assert sorted(set(all_sensors)) == sorted(all_sensors)
 
+    @pytest.mark.parametrize("sensor", all_readable_sensors)
     def test_all_readable_sensors_are_readable(self, sensor):
         with read_sensors.sensors_session():
-            _ = sensor.get_value()
+            for chip in sensors.iter_detected_chips():
+                if chip.prefix.decode() != sensor.chip:
+                    continue
+                for feature in chip:
+                    if feature.name == sensor.feature:
+                        _ = feature.get_value()
+                        break
+                else:
+                    raise ValueError("Feature not found")
+                break
+            else:
+                raise ValueError("Chip not found")
