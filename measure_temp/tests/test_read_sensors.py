@@ -41,7 +41,7 @@ class TestEnumerateAllSensors:
     def test_all_readable_sensors_are_readable(self, sensor):
         with read_sensors.sensors_session():
             for chip in sensors.iter_detected_chips():
-                if chip.prefix.decode() != sensor.chip:
+                if chip.prefix.decode() != sensor.chip or chip.addr != sensor.addr:
                     continue
                 for feature in chip:
                     if feature.name == sensor.feature:
