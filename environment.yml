@@ -11,5 +11,6 @@ dependencies:
   - versioneer
   - pip>=22
   - pre-commit
+  - pytest>=7
   - pip:
     - pysensors  # not the sklearn pkg
