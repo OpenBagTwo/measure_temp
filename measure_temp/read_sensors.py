@@ -1,6 +1,6 @@
 """Get readings from sensors"""
 from contextlib import contextmanager
-from typing import List, NamedTuple, Optional, Tuple, Union
+from typing import List, NamedTuple, Optional, Set, Tuple, Union
 
 import sensors
 
@@ -52,15 +52,23 @@ class Sensor(NamedTuple):
     ----------
     chip : str
         The chip's prefix
+    addr : int
+        The chip's address
     feature : str
         The name of the specific reading
+    num : int, optional
+        If two chips share the same name, you can supply a unique number suffix to distinguish them from each other
+        without resorting to using the address. If None is specified at init, the default value is 0.
+
     """
 
     chip: str
+    addr: int
     feature: str
+    num: int = 0
 
     def __str__(self):
-        return ".".join(self)
+        return f"{self.chip}{self.num if self.num else ''}.{self.feature}"
 
 
 @sensors_session()
@@ -80,13 +88,19 @@ def enumerate_all_sensors(
     list of tuples, where the first value is a Sensor (chip, feature) tuples and the second the corresponding Feature
     instances
     """
-    sensors_list = []
+    sensors_list: List[Sensor] = []
+    chip_labels: Set[Tuple[str, int]] = set()
     for chip in sensors.iter_detected_chips():
+        chip_label = chip.prefix.decode()
+        num = 0
+        while (chip_label, num) in chip_labels:
+            num += 1
+        chip_labels.add((chip_label, num))
         for feature in chip:
             if readable_only:
                 try:
                     _ = feature.get_value()
                 except sensors.SensorsError:
                     continue
-            sensors_list.append(Sensor(chip.prefix.decode(), feature.name))
+            sensors_list.append(Sensor(chip_label, chip.addr, feature.name, num=num))
     return sensors_list
