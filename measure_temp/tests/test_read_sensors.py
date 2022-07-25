@@ -1,4 +1,4 @@
-"""Integration tests for ensuring the read_sensors module is playing nicely on your system"""
+"""Mostly integration tests for ensuring the read_sensors module is playing nicely on your system"""
 from typing import Iterable, NamedTuple, Optional, Tuple
 
 import pytest

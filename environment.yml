@@ -2,7 +2,7 @@ name: measure_temp
 channels:
   - conda-forge
 dependencies:
-  - python==3.7
+  - python=3.7
   - ipython>=7
   - jupyterlab>=3
   - black
@@ -12,5 +12,6 @@ dependencies:
   - pip>=22
   - pre-commit
   - pytest>=7
+  - click>=8
   - pip:
-    - pysensors  # not the sklearn pkg
+    - pysensors==0.0.4  # not the sklearn pkg
